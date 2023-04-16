@@ -20,6 +20,8 @@ class PdfT extends StatefulWidget {
   State<PdfT> createState() => _PdfTState();
 }
 
+//second page building for everything with a second page
+
 class _PdfTState extends State<PdfT> {
   bool isButtonActive = true;
   showPrintedMessage(String title, String msg) {
