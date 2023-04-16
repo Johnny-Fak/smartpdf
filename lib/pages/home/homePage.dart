@@ -46,13 +46,6 @@ class _HomePageState extends State<HomePage> {
   AppBar buildAppBar() {
     return AppBar(
       automaticallyImplyLeading: false,
-      title: Text("Chats"),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.search),
-          onPressed: () {},
-        ),
-      ],
     );
   }
 }
