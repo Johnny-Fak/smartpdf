@@ -151,6 +151,7 @@ class _EncryptPageState extends State<EncryptPage> {
                             allowMultiple: false,
                             type: FileType.custom);
                     if (pickFile != null) {
+                      //if file is picked, syc to import syncfusion library
                       final File file = File(pickFile.files.first.path!);
                       final syc.PdfDocument document = syc.PdfDocument(
                           inputBytes: File(file.path).readAsBytesSync());
@@ -207,6 +208,7 @@ class _EncryptPageState extends State<EncryptPage> {
                 onTap: () async {
                   try {
                     FilePickerResult? pickFile = await FilePicker.platform
+                    //pick file
                         .pickFiles(
                             allowedExtensions: ['pdf'],
                             withData: true,
@@ -214,10 +216,12 @@ class _EncryptPageState extends State<EncryptPage> {
                             allowMultiple: false,
                             type: FileType.custom);
                     if (pickFile != null) {
+                      //if file is picked, syc to import syncfusion library
                       final File file = File(pickFile.files.first.path!);
                       final syc.PdfDocument document = syc.PdfDocument(
                           inputBytes: File(file.path).readAsBytesSync(),
                           password: 'userpassword@123');
+                          //remove password
                       log(document.toString());
                       final PdfSecurity security = document.security;
 
@@ -239,8 +243,10 @@ class _EncryptPageState extends State<EncryptPage> {
                       ]);
                       File ourNewFile = await saveDecrypt(
                           fileName: file.path, document: document);
+                          //call decrypt function
                       log(ourNewFile.toString());
                       decryptFile(pickFile.files);
+                      //second page
                     }
                   } catch (e) {
                     log(e.toString());
@@ -274,6 +280,7 @@ class _EncryptPageState extends State<EncryptPage> {
                 onTap: () async {
                   try {
                     FilePickerResult? pickFile = await FilePicker.platform
+                    //file picker
                         .pickFiles(
                             allowedExtensions: ['pdf'],
                             withData: true,
@@ -281,9 +288,11 @@ class _EncryptPageState extends State<EncryptPage> {
                             allowMultiple: false,
                             type: FileType.custom);
                     if (pickFile != null) {
+                      //if file is picked, syc to import syncfusion library
                       final File file = File(pickFile.files.first.path!);
                       final String filo = file.path;
                       passwordFiles(pickFile.files, filo);
+                      //call function
                     }
                   } catch (e) {
                     log(e.toString());
@@ -325,6 +334,7 @@ class _EncryptPageState extends State<EncryptPage> {
       builder: (context) => EncryptSec(
         files: files,
         onOpenedFile: encryptFiles,
+        //push to second page
       ),
     ));
   }
@@ -338,6 +348,7 @@ class _EncryptPageState extends State<EncryptPage> {
       builder: (context) => DecryptSec(
         files: files,
         onOpenedFile: decryptFiles,
+        //push to second page
       ),
     ));
   }
@@ -352,6 +363,7 @@ class _EncryptPageState extends State<EncryptPage> {
         files: files,
         filee: filo,
         onOpenedFile: passwordFile,
+        //push to second page
       ),
     ));
   }
