@@ -92,34 +92,6 @@ class _EncryptPageState extends State<EncryptPage> {
     }
   }
 
-  //This function is for saving the encrypted document
-  static Future<File> saveEncrypt(
-      {required String fileName, required syc.PdfDocument document}) async {
-    final appDirectory = await getExternalStorageDirectory();
-    log(appDirectory.toString());
-    String? fileS = fileName.split("/").last;
-    //get file path to append to the file
-    final File file = File("/storage/emulated/0/Download/$fileS");
-    File(file.path).writeAsBytes(await document.save());
-    document.dispose();
-    log(file.toString());
-
-    return file;
-  }
-
-  static Future<File> saveDecrypt(
-      {required String fileName, required syc.PdfDocument document}) async {
-    final appDirectory = await getExternalStorageDirectory();
-    log(appDirectory.toString());
-    String? fileS = fileName.split("/").last;
-    //get file path to append to the file
-    final File file = File("/storage/emulated/0/Download/$fileS");
-    File(file.path).writeAsBytes(await document.save());
-    document.dispose();
-    log(file.toString());
-
-    return file;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,28 +125,8 @@ class _EncryptPageState extends State<EncryptPage> {
                     if (pickFile != null) {
                       //if file is picked, syc to import syncfusion library
                       final File file = File(pickFile.files.first.path!);
-                      final syc.PdfDocument document = syc.PdfDocument(
-                          inputBytes: File(file.path).readAsBytesSync());
-                      log(document.toString());
-                      final PdfSecurity security = document.security;
-
-                      //Set password.
-                      security.userPassword = 'userpassword@123';
-                      security.ownerPassword = 'ownerpassword@123';
-
-                      //setting permissions
-                      security.permissions.addAll(<PdfPermissionsFlags>[
-                        PdfPermissionsFlags.print,
-                        PdfPermissionsFlags.editAnnotations
-                      ]);
-
-                      //Set AES encryption algorithm.
-                      security.algorithm = PdfEncryptionAlgorithm.aesx256Bit;
-
-                      File ourNewFile = await saveEncrypt(
-                          fileName: file.path, document: document);
-                      log(ourNewFile.toString());
-                      encryptFile(pickFile.files);
+                      final String filo = file.path;
+                      encryptFile(pickFile.files, filo);
                     }
                   } catch (e) {
                     log(e.toString());
@@ -198,7 +150,7 @@ class _EncryptPageState extends State<EncryptPage> {
                       Icon(
                         Icons.lock,
                         size: 24,
-                        color: Colors.white,
+                        // color: Colors.white,
                       ),
                     ],
                   ),
@@ -218,34 +170,8 @@ class _EncryptPageState extends State<EncryptPage> {
                     if (pickFile != null) {
                       //if file is picked, syc to import syncfusion library
                       final File file = File(pickFile.files.first.path!);
-                      final syc.PdfDocument document = syc.PdfDocument(
-                          inputBytes: File(file.path).readAsBytesSync(),
-                          password: 'userpassword@123');
-                          //remove password
-                      log(document.toString());
-                      final PdfSecurity security = document.security;
-
-                      //remove password.
-                      document.security.userPassword = '';
-                      document.security.ownerPassword = '';
-
-                      //setting permissions
-                      security.permissions.addAll(<PdfPermissionsFlags>[
-                        PdfPermissionsFlags.editContent,
-                        PdfPermissionsFlags.copyContent,
-                        PdfPermissionsFlags.editAnnotations,
-                        PdfPermissionsFlags.fillFields,
-                        PdfPermissionsFlags.assembleDocument,
-                        PdfPermissionsFlags.print,
-                        PdfPermissionsFlags.accessibilityCopyContent,
-                        PdfPermissionsFlags.assembleDocument,
-                        PdfPermissionsFlags.fullQualityPrint
-                      ]);
-                      File ourNewFile = await saveDecrypt(
-                          fileName: file.path, document: document);
-                          //call decrypt function
-                      log(ourNewFile.toString());
-                      decryptFile(pickFile.files);
+                      final String filo = file.path;
+                      decryptFile(pickFile.files, filo);
                       //second page
                     }
                   } catch (e) {
@@ -270,7 +196,7 @@ class _EncryptPageState extends State<EncryptPage> {
                       Icon(
                         Icons.lock_open_outlined,
                         size: 24,
-                        color: Colors.white,
+                        // color: Colors.white,
                       ),
                     ],
                   ),
@@ -316,7 +242,7 @@ class _EncryptPageState extends State<EncryptPage> {
                       Icon(
                         Icons.password,
                         size: 24,
-                        color: Colors.white,
+                        // color: Colors.white,
                       ),
                     ],
                   ),
@@ -329,11 +255,12 @@ class _EncryptPageState extends State<EncryptPage> {
     );
   }
 
-  void encryptFile(List<PlatformFile> files) {
+  void encryptFile(List<PlatformFile> files, String filo) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => EncryptSec(
         files: files,
         onOpenedFile: encryptFiles,
+        filee: filo,
         //push to second page
       ),
     ));
@@ -343,11 +270,12 @@ class _EncryptPageState extends State<EncryptPage> {
     OpenFile.open(file.path);
   }
 
-  void decryptFile(List<PlatformFile> files) {
+  void decryptFile(List<PlatformFile> files, String filo) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => DecryptSec(
         files: files,
         onOpenedFile: decryptFiles,
+        filee: filo,
         //push to second page
       ),
     ));

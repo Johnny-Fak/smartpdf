@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart' as syc;
 import 'package:file_picker/file_picker.dart';
@@ -274,7 +275,8 @@ class _PdfTTState extends State<PdfTT> {
 class EncryptSec extends StatefulWidget {
   final List<PlatformFile> files;
   final ValueChanged<PlatformFile> onOpenedFile;
-  const EncryptSec({Key? key, required this.files, required this.onOpenedFile})
+  final String filee;
+  const EncryptSec({Key? key, required this.files, required this.onOpenedFile, required this.filee})
       : super(key: key);
 
   @override
@@ -282,6 +284,21 @@ class EncryptSec extends StatefulWidget {
 }
 
 class _EncryptSecState extends State<EncryptSec> {
+//This function is for saving the encrypted document
+  static Future<File> saveEncrypt(
+      {required String fileName, required syc.PdfDocument document}) async {
+    final appDirectory = await getExternalStorageDirectory();
+    log(appDirectory.toString());
+    String? fileS = fileName.split("/").last;
+    //get file path to append to the file
+    final File file = File("/storage/emulated/0/Download/$fileS");
+    File(file.path).writeAsBytes(await document.save());
+    document.dispose();
+    log(file.toString());
+
+    return file;
+  }
+
   bool isButtonActive = true;
   showPrintedMessage(String title, String msg) {
     Flushbar(
@@ -332,17 +349,48 @@ class _EncryptSecState extends State<EncryptSec> {
               'Encrypt Document',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            onPressed: () {
-              if (isButtonActive == true) {
-                isButtonActive = false;
-                log(isButtonActive.toString());
-                ElevatedButton.styleFrom(
-                    disabledBackgroundColor: buttonColor,
-                    backgroundColor: buttonColor);
-                showPrintedMessage(
-                    'File Encrypted Successfully', 'Saved to Download Folder ');
-              }
-            },
+            onPressed: () async{
+                      try {
+                            if (isButtonActive == true) {
+                        isButtonActive = false;
+                        log(isButtonActive.toString());
+                        ElevatedButton.styleFrom(
+                            disabledBackgroundColor: buttonColor,
+                            backgroundColor: buttonColor);
+                        final String files = widget.filee;
+                        String? fileS = files.split("/").last;
+                        showPrintedMessage(
+                            'File Encrypted Successfully', 'Saved to Download Folder $fileS');
+                      }
+                      //if file is picked, syc to import syncfusion library
+                      final file = widget.filee;
+                      final syc.PdfDocument document = syc.PdfDocument(
+                          inputBytes: File(file).readAsBytesSync());
+                      log(document.toString());
+                      final PdfSecurity security = document.security;
+
+                      //Set password.
+                      security.userPassword = 'userpassword@123';
+                      security.ownerPassword = 'ownerpassword@123';
+
+                      //setting permissions
+                      security.permissions.addAll(<PdfPermissionsFlags>[
+                        PdfPermissionsFlags.print,
+                        PdfPermissionsFlags.editAnnotations
+                      ]);
+
+                      //Set AES encryption algorithm.
+                      security.algorithm = PdfEncryptionAlgorithm.aesx256Bit;
+
+                      File ourNewFile = await saveEncrypt(
+                          fileName: file, document: document);
+                      log(ourNewFile.toString());
+                      final String filo = file;
+                    }
+                    catch (e) {
+                    log(e.toString());
+                    }
+                  }
           ),
         ),
       );
@@ -402,7 +450,8 @@ class _EncryptSecState extends State<EncryptSec> {
 class DecryptSec extends StatefulWidget {
   final List<PlatformFile> files;
   final ValueChanged<PlatformFile> onOpenedFile;
-  const DecryptSec({Key? key, required this.files, required this.onOpenedFile})
+  final String filee;
+  const DecryptSec({Key? key, required this.files, required this.onOpenedFile, required this.filee})
       : super(key: key);
 
   @override
@@ -410,6 +459,19 @@ class DecryptSec extends StatefulWidget {
 }
 
 class _DecryptSecState extends State<DecryptSec> {
+  static Future<File> saveDecrypt(
+      {required String fileName, required syc.PdfDocument document}) async {
+    final appDirectory = await getExternalStorageDirectory();
+    log(appDirectory.toString());
+    String? fileS = fileName.split("/").last;
+    //get file path to append to the file
+    final File file = File("/storage/emulated/0/Download/$fileS");
+    File(file.path).writeAsBytes(await document.save());
+    document.dispose();
+    log(file.toString());
+
+    return file;
+  }
   bool isButtonActive = true;
   showPrintedMessage(String title, String msg) {
     Flushbar(
@@ -460,21 +522,57 @@ class _DecryptSecState extends State<DecryptSec> {
               'Decrypt Document',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            onPressed: () {
-              if (isButtonActive == true) {
+            onPressed: () async{
+              try{
+                if (isButtonActive == true) {
                 isButtonActive = false;
-                log(isButtonActive.toString());
+                final String file = widget.filee;
+                      final syc.PdfDocument document = syc.PdfDocument(
+                          inputBytes: File(file).readAsBytesSync(),
+                          password: 'userpassword@123');
+                          //remove password
+                      log(document.toString());
+                      final PdfSecurity security = document.security;
+
+                      //remove password.
+                      document.security.userPassword = '';
+                      document.security.ownerPassword = '';
+
+                      //setting permissions
+                      security.permissions.addAll(<PdfPermissionsFlags>[
+                        PdfPermissionsFlags.editContent,
+                        PdfPermissionsFlags.copyContent,
+                        PdfPermissionsFlags.editAnnotations,
+                        PdfPermissionsFlags.fillFields,
+                        PdfPermissionsFlags.assembleDocument,
+                        PdfPermissionsFlags.print,
+                        PdfPermissionsFlags.accessibilityCopyContent,
+                        PdfPermissionsFlags.assembleDocument,
+                        PdfPermissionsFlags.fullQualityPrint
+                      ]);
+                      File ourNewFile = await saveDecrypt(
+                          fileName: file, document: document);
+                          //call decrypt function
+                      log(ourNewFile.toString());
+                      log(isButtonActive.toString());
                 ElevatedButton.styleFrom(
                     disabledBackgroundColor: buttonColor,
                     backgroundColor: buttonColor);
+                    String? fileS = file.split("/").last;
+                    log(file.toString());
+                    // log(fileee);
                 showPrintedMessage(
-                    'File Decrypted Successfully', 'Saved to Download Folder ');
+                    'File Decrypted Successfully', 'Saved to Download Folder $fileS' );
               } else {
                 ElevatedButton.styleFrom(
                   backgroundColor: buttonColor,
                 );
               }
-            },
+                    }
+                  catch (e) {
+                    log(e.toString());
+                  }
+              }
           ),
         ),
       );
@@ -557,16 +655,16 @@ class _PasswordSecState extends State<PasswordSec> {
             icon: const Icon(Icons.info, color: primaryColor))
         .show(context);
   }
-@override
-  String password = '';
   bool isPassword = false;
+  final password = TextEditingController();
+  // String passwords = password.text;
   Widget buildPassword() => TextField(
-    onSubmitted: (value ) => setState(() =>this.password = value),
-    onChanged: (value ) => setState(() =>this.password = value),
+    // onSubmitted: (value ) => setState(() =>this.password = value),
+    // onChanged: (value ) => setState(() =>this.password = value),
         decoration: InputDecoration(
           hintText: 'Enter Password',
           labelText: 'Password',
-          errorText: 'Password has to be 8 digit length',
+          errorText: 'Choose an easy to remember password',
           suffixIcon: IconButton(
             icon: isPassword
             ? const Icon(Icons.visibility_off)
@@ -594,21 +692,54 @@ class _PasswordSecState extends State<PasswordSec> {
             )
           ],
         ),
-        body: Center(
-          child: GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 2,
-                            crossAxisSpacing: 2),
-                    itemCount: widget.files.length,
-                    itemBuilder: (context, index) {
-                      final file = widget.files[index];
-                      buildPassword();
-                      return buildFile(file);
-                    },
-                    scrollDirection: Axis.vertical,
-                  ),
+        body: Column(
+          children: [
+            SizedBox(
+              height: 250,
+              child: GridView.builder(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 2,
+                                crossAxisSpacing: 2),
+                        itemCount: widget.files.length,
+                        itemBuilder: (context, index) {
+                          final file = widget.files[index];
+                          // buildPassword();
+                          return buildFile(file);
+                        },
+                        scrollDirection: Axis.vertical,
+                      ),
+            ),
+            SizedBox(
+              width: 350,
+              child:
+              // buildPassword()
+              TextFormField(
+                validator: (value){
+                return value!.length < 8
+                ? 'Name must be greater than two characters'
+                : null;
+                },
+                controller: password,
+                // onSubmitted: (value ) => setState(() =>password.clear()),
+                // onChanged: (value ) => setState(() =>this.password = value),
+                    decoration: InputDecoration(
+                      hintText: 'Enter Password',
+                      labelText: 'Password',
+                      errorText: 'Password has to be 8 digit length',
+                      suffixIcon: IconButton(
+                        icon: isPassword
+                        ? const Icon(Icons.visibility_off)
+                        : const Icon(Icons.visibility),
+                        onPressed: () =>
+                        setState(() => isPassword = !isPassword),),
+                      border: const OutlineInputBorder(),
+                    ),
+                    obscureText: isPassword,
+                  )
+              ),
+          ],
         ),
         bottomNavigationBar: SizedBox(
           child: ElevatedButton(
@@ -630,9 +761,9 @@ class _PasswordSecState extends State<PasswordSec> {
                 final PdfSecurity security = document.security;
 
                 //Set password.
-                security.userPassword = password;
-                security.ownerPassword = password;
-                log(password);
+                security.userPassword = password.text;
+                security.ownerPassword = password.text;
+                log(password.text);
 
                 //setting permissions
                 security.permissions.addAll(<PdfPermissionsFlags>[
@@ -648,11 +779,15 @@ class _PasswordSecState extends State<PasswordSec> {
                 log(ourNewFile.toString());
                 isButtonActive = false;
                 log(isButtonActive.toString());
+                String? fileS = file.split("/").last;
+                log(file.toString());
                 ElevatedButton.styleFrom(
                     disabledBackgroundColor: buttonColor,
                     backgroundColor: buttonColor);
+                final passwords = password.text;
                 showPrintedMessage('Passworded Added to Document Successfully',
-                    'Saved to Download Folder $file');
+                    'Saved with $passwords  to Download Folder as $fileS');
+                password.clear();
               } else {
                 ElevatedButton.styleFrom(
                   backgroundColor: buttonColor,
@@ -713,7 +848,7 @@ class _PasswordSecState extends State<PasswordSec> {
       ),
     );
   }
-   static Future<File> savePassword(
+  static Future<File> savePassword(
       {required String fileName, required syc.PdfDocument document}) async {
     final appDirectory = await getExternalStorageDirectory();
     log(appDirectory.toString());
