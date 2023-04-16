@@ -7,7 +7,7 @@ import 'package:finalpdf/widgets/header.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:provider/provider.dart';
-
+//This is the main screen. contains the pages that will be displayed
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 

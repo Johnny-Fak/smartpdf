@@ -19,7 +19,7 @@ const lineColor = Color.fromARGB(255, 215, 202, 202);
 const subTxt = Color.fromARGB(255, 133, 133, 133);
 
 const DefaultPadding = 20.0;
-
+//constant values for variables or attributes
 class MyThemes {
   static final darkTheme = ThemeData(
     scaffoldBackgroundColor: ContentColorLightTheme,
